@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Archive Playlists</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>Archive Playlists</h1>
+    <p class="subtitle">Static site — edit <code>/data/playlists.json</code> to add or change playlists.</p>
+  </header>
+
+  <main class="container">
+    <aside class="sidebar">
+      <div id="playlists"></div>
+    </aside>
+
+    <section class="player-area">
+      <div class="cover">
+        <img id="coverImg" src="assets/img/placeholder.jpg" alt="cover image">
+      </div>
+
+      <div class="video-wrapper">
+        <video id="videoPlayer" controls crossorigin playsinline>
+          <!-- sources injected by JS -->
+        </video>
+      </div>
+
+      <div id="playlistTracks" class="tracks"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>Built for static deploy on GitHub/Vercel • Uses archive.org metadata API</small>
+  </footer>
+
+  <script src="assets/js/player.js" type="module"></script>
+</body>
+</html>
