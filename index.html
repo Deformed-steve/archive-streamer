@@ -3,30 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Archive.org Playlists</title>
-  <link rel="stylesheet" href="assets/css/style.css">
+  <title>Archive Playlists</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
-  <header>
-    <h1>📺 Archive Playlists</h1>
-  </header>
+  <h1>🎵 Archive Playlists</h1>
 
-  <main>
-    <!-- Sidebar playlists -->
-    <aside id="playlists"></aside>
+  <div id="playlist-container"></div>
 
-    <!-- Playlist details -->
-    <section id="playlistDetails">
-      <div class="cover-wrap">
-        <img id="coverImg" src="assets/img/placeholder.jpg" alt="Cover">
-      </div>
-      <div id="playlistTracks"></div>
-    </section>
-  </main>
-
-  <footer>
-    <p>Powered by Archive.org | Editable via <code>/data/playlists.json</code></p>
-  </footer>
+  <!-- Video Player -->
+  <div id="player-wrapper" style="display:none;">
+    <video id="video-player" controls width="640" height="360"></video>
+  </div>
 
   <script src="assets/js/player.js"></script>
 </body>
