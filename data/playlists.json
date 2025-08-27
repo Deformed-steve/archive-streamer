@@ -1,0 +1,10 @@
+{
+  "playlists": [
+    {
+      "title": "Bill Nye - The Complete Series (example)",
+      "url": "https://archive.org/details/billnyethescienceguythecompleteseries-07-28-2021/",
+      "cover": "/assets/img/billnye-cover.jpg",
+      "description": "Example playlist using archive.org metadata"
+    }
+  ]
+}
