@@ -1,45 +1,33 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Archive Playlists — VOD</title>
-  <link rel="stylesheet" href="assets/css/styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Archive.org Playlists</title>
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="title-wrap">
-      <h1>Archive Playlists</h1>
-      <p class="subtitle">Edit playlists in <code>/data/playlists.json</code></p>
-    </div>
-    <div class="search-wrap">
-      <input id="search" placeholder="Search playlists / episodes..." />
-    </div>
+  <header>
+    <h1>📺 Archive Playlists</h1>
   </header>
 
-  <main class="container">
-    <aside class="sidebar">
-      <div class="sidebar-inner">
-        <h3>Playlists</h3>
-        <div id="playlists" class="playlists-list">Loading…</div>
-      </div>
-    </aside>
+  <main>
+    <!-- Sidebar playlists -->
+    <aside id="playlists"></aside>
 
-    <section class="player-area">
-      <div class="cover">
-        <img id="coverImg" src="assets/img/placeholder.jpg" alt="cover" />
+    <!-- Playlist details -->
+    <section id="playlistDetails">
+      <div class="cover-wrap">
+        <img id="coverImg" src="assets/img/placeholder.jpg" alt="Cover">
       </div>
-
-      <div class="tracks-panel">
-        <div class="panel-head">
-          <h3 id="playlistTitle">No playlist loaded</h3>
-        </div>
-        <div id="playlistTracks" class="tracks">Select a playlist to load episodes.</div>
-      </div>
+      <div id="playlistTracks"></div>
     </section>
   </main>
 
-  <!-- iframe overlay (created/used by JS) -->
-  <script type="module" src="assets/js/player.js"></script>
+  <footer>
+    <p>Powered by Archive.org | Editable via <code>/data/playlists.json</code></p>
+  </footer>
+
+  <script src="assets/js/player.js"></script>
 </body>
 </html>
