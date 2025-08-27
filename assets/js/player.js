@@ -2,13 +2,10 @@
 const PLAYLISTS_URL = '/data/playlists.json';
 const playlistsContainer = document.getElementById('playlists');
 const tracksContainer = document.getElementById('playlistTracks');
-const videoPlayer = document.getElementById('videoPlayer');
 const coverImg = document.getElementById('coverImg');
 
 let currentPlaylist = null;
 let currentTracks = [];
-let currentIndex = 0;
-let currentFormatIndex = 0;
 
 async function loadPlaylists(){
   try{
@@ -19,7 +16,6 @@ async function loadPlaylists(){
     if(data.playlists?.length) selectPlaylist(0, data.playlists[0]);
   }catch(err){
     playlistsContainer.innerHTML = `<div class="small">Error loading playlists: ${err.message}</div>`;
-    console.error(err);
   }
 }
 
@@ -51,28 +47,16 @@ async function selectPlaylist(idx, pl){
     const files = meta?.files || [];
     const videoFormats = ['.mp4','.mkv','.avi','.mov','.mpg','.mpeg','.ogv','.webm'];
 
-    // Group by base name (ignore extension)
-    const grouped = {};
-    files.forEach(f => {
-      const name = f.name || '';
-      const lower = name.toLowerCase();
-      if(!videoFormats.some(ext => lower.endsWith(ext))) return;
-      const base = name.replace(/\.[^.]+$/, ''); // remove extension
+    currentTracks = files.filter(f => {
+      const n = f.name?.toLowerCase() || '';
+      return videoFormats.some(ext => n.endsWith(ext));
+    }).map(f => {
       const urlBase = pl.url.replace('/details/','/download/').replace(/\/$/,'');
-      const fileUrl = `${urlBase}/${encodeURIComponent(name)}`;
-
-      if(!grouped[base]) grouped[base] = [];
-      grouped[base].push({ 
-        format: name.split('.').pop(), 
-        fileUrl, 
-        size: f.size 
-      });
+      return {
+        title: f.name,
+        url: `${urlBase}/${encodeURIComponent(f.name)}`
+      };
     });
-
-    currentTracks = Object.entries(grouped).map(([base, formats]) => ({
-      title: base,
-      formats
-    }));
 
     if(currentTracks.length === 0){
       tracksContainer.innerHTML = `<div class="small">No playable videos found.</div>`;
@@ -80,11 +64,9 @@ async function selectPlaylist(idx, pl){
     }
 
     renderTracks();
-    loadTrack(0,0);
 
   }catch(err){
     tracksContainer.innerHTML = `<div class="small">Error: ${err.message}</div>`;
-    console.error(err);
   }
 }
 
@@ -93,58 +75,37 @@ function renderTracks(){
   currentTracks.forEach((t, i) => {
     const el = document.createElement('div');
     el.className = 'track';
-    el.dataset.index = i;
-
-    let formatBtns = '';
-    t.formats.forEach((f, fi) => {
-      formatBtns += `<button class="fmt-btn" data-track="${i}" data-fmt="${fi}">${f.format}</button> `;
-    });
-
     el.innerHTML = `
       <div class="meta">
         <div class="title">${escapeHtml(t.title)}</div>
-        <div class="sub">Formats: ${formatBtns}</div>
       </div>
     `;
-
-    el.querySelectorAll('.fmt-btn').forEach(btn => {
-      btn.addEventListener('click', (e)=>{
-        const ti = Number(e.target.dataset.track);
-        const fi = Number(e.target.dataset.fmt);
-        loadTrack(ti, fi);
-      });
-    });
-
+    el.addEventListener('click', ()=> openIframe(t.url));
     tracksContainer.appendChild(el);
   });
-  highlightActive();
 }
 
-function loadTrack(trackIdx, fmtIdx=0){
-  if(!currentTracks[trackIdx]) return;
-  currentIndex = trackIdx;
-  currentFormatIndex = fmtIdx;
-  const track = currentTracks[trackIdx];
-  const fmt = track.formats[fmtIdx];
+// IFRAME overlay
+function openIframe(url){
+  // overlay container
+  const overlay = document.createElement('div');
+  overlay.className = 'iframe-overlay';
+  overlay.innerHTML = `
+    <div class="iframe-box">
+      <iframe src="${url}" frameborder="0" allowfullscreen></iframe>
+      <button class="iframe-close">✖</button>
+      <button class="iframe-fullscreen">⛶</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
 
-  while(videoPlayer.firstChild) videoPlayer.removeChild(videoPlayer.firstChild);
-  const source = document.createElement('source');
-  source.src = fmt.fileUrl;
-  videoPlayer.appendChild(source);
-
-  videoPlayer.load();
-  videoPlayer.play().catch(()=>{});
-  highlightActive();
-}
-
-function highlightActive(){
-  const els = tracksContainer.querySelectorAll('.track');
-  els.forEach((el, idx) => {
-    el.classList.toggle('active', idx === currentIndex);
+  overlay.querySelector('.iframe-close').addEventListener('click', ()=> overlay.remove());
+  overlay.querySelector('.iframe-fullscreen').addEventListener('click', ()=>{
+    const iframe = overlay.querySelector('iframe');
+    if(iframe.requestFullscreen) iframe.requestFullscreen();
   });
 }
 
-// helpers
 async function fetchArchiveMetadata(identifier){
   const url = `https://archive.org/metadata/${encodeURIComponent(identifier)}`;
   const res = await fetch(url);
