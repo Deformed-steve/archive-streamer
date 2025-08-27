@@ -1,155 +1,45 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📺 Channels</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-    }
-    header {
-      background: #222;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header h1 {
-      font-size: 20px;
-      margin: 0;
-    }
-    #search {
-      padding: 6px;
-      border-radius: 4px;
-      border: none;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 15px;
-      padding: 20px;
-    }
-    .grid-item {
-      background: #222;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .grid-item:hover {
-      transform: scale(1.05);
-      background: #333;
-    }
-    /* Overlay Player */
-    #playerOverlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(10px);
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      flex-direction: column;
-    }
-    #playerOverlay iframe {
-      width: 95%;
-      height: 95%;
-      border: none;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.8);
-    }
-    .player-controls {
-      position: absolute;
-      top: 15px;
-      right: 20px;
-      display: flex;
-      gap: 10px;
-    }
-    .player-btn {
-      background: red;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
-    }
-    .fullscreen-btn {
-      background: #444;
-    }
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Archive Playlists — VOD</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
-  <header>
-    <h1>📺 Channels</h1>
-    <input type="text" id="search" placeholder="Search channels...">
-  </header>
-  <main>
-    <div class="grid" id="channelGrid">
-      <div class="grid-item" data-url="https://example.com/embed/stream1">Channel 1</div>
-      <div class="grid-item" data-url="https://example.com/embed/stream2">Channel 2</div>
-      <div class="grid-item" data-url="https://example.com/embed/stream3">Channel 3</div>
+  <header class="site-header">
+    <div class="title-wrap">
+      <h1>Archive Playlists</h1>
+      <p class="subtitle">Edit playlists in <code>/data/playlists.json</code></p>
     </div>
+    <div class="search-wrap">
+      <input id="search" placeholder="Search playlists / episodes..." />
+    </div>
+  </header>
+
+  <main class="container">
+    <aside class="sidebar">
+      <div class="sidebar-inner">
+        <h3>Playlists</h3>
+        <div id="playlists" class="playlists-list">Loading…</div>
+      </div>
+    </aside>
+
+    <section class="player-area">
+      <div class="cover">
+        <img id="coverImg" src="assets/img/placeholder.jpg" alt="cover" />
+      </div>
+
+      <div class="tracks-panel">
+        <div class="panel-head">
+          <h3 id="playlistTitle">No playlist loaded</h3>
+        </div>
+        <div id="playlistTracks" class="tracks">Select a playlist to load episodes.</div>
+      </div>
+    </section>
   </main>
 
-  <!-- Player Overlay -->
-  <div id="playerOverlay">
-    <div class="player-controls">
-      <button class="player-btn close-btn">X</button>
-      <button class="player-btn fullscreen-btn">Fullscreen</button>
-    </div>
-    <iframe id="playerFrame" src="" allowfullscreen></iframe>
-  </div>
-
-  <script>
-    const searchInput = document.getElementById("search");
-    const channelGrid = document.getElementById("channelGrid");
-    const playerOverlay = document.getElementById("playerOverlay");
-    const playerFrame = document.getElementById("playerFrame");
-    const closeBtn = document.querySelector(".close-btn");
-    const fullscreenBtn = document.querySelector(".fullscreen-btn");
-
-    // Open channel in player
-    document.querySelectorAll(".grid-item").forEach(item => {
-      item.addEventListener("click", () => {
-        const url = item.getAttribute("data-url");
-        playerFrame.src = url;
-        playerOverlay.style.display = "flex";
-      });
-    });
-
-    // Close player
-    closeBtn.addEventListener("click", () => {
-      playerOverlay.style.display = "none";
-      playerFrame.src = "";
-    });
-
-    // Toggle fullscreen
-    fullscreenBtn.addEventListener("click", () => {
-      if (playerFrame.requestFullscreen) {
-        playerFrame.requestFullscreen();
-      } else if (playerFrame.webkitRequestFullscreen) {
-        playerFrame.webkitRequestFullscreen();
-      } else if (playerFrame.msRequestFullscreen) {
-        playerFrame.msRequestFullscreen();
-      }
-    });
-
-    // Search filter
-    searchInput.addEventListener("input", () => {
-      const term = searchInput.value.toLowerCase();
-      document.querySelectorAll(".grid-item").forEach(item => {
-        item.style.display = item.textContent.toLowerCase().includes(term) ? "block" : "none";
-      });
-    });
-  </script>
+  <!-- iframe overlay (created/used by JS) -->
+  <script type="module" src="assets/js/player.js"></script>
 </body>
 </html>
