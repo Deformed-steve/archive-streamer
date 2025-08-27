@@ -8,6 +8,7 @@ const coverImg = document.getElementById('coverImg');
 let currentPlaylist = null;
 let currentTracks = [];
 let currentIndex = 0;
+let currentFormatIndex = 0;
 
 async function loadPlaylists(){
   try{
@@ -15,8 +16,7 @@ async function loadPlaylists(){
     if(!r.ok) throw new Error('Failed loading playlists.json');
     const data = await r.json();
     renderPlaylistsList(data.playlists || []);
-    // auto-load first playlist
-    if(data.playlists && data.playlists.length) selectPlaylist(0, data.playlists[0]);
+    if(data.playlists?.length) selectPlaylist(0, data.playlists[0]);
   }catch(err){
     playlistsContainer.innerHTML = `<div class="small">Error loading playlists: ${err.message}</div>`;
     console.error(err);
@@ -41,38 +41,47 @@ function renderPlaylistsList(list){
 async function selectPlaylist(idx, pl){
   currentPlaylist = pl;
   coverImg.src = pl.cover || 'assets/img/placeholder.jpg';
-  tracksContainer.innerHTML = `<div class="small">Loading playlist from Archive.org…</div>`;
+  tracksContainer.innerHTML = `<div class="small">Loading playlist…</div>`;
+
   try{
     const id = extractIdentifierFromUrl(pl.url);
-    if(!id) throw new Error('Could not parse archive.org identifier from URL');
+    if(!id) throw new Error('Could not parse archive.org identifier');
     const meta = await fetchArchiveMetadata(id);
+
     const files = meta?.files || [];
-    // pick video files: mp4, webm, ogv
-    const videoFiles = files.filter(f => {
-      const n = (f.name || '').toLowerCase();
-      return n.endsWith('.mp4') || n.endsWith('.webm') || n.endsWith('.ogv') || f.format?.toLowerCase().includes('mp4');
+    const videoFormats = ['.mp4','.mkv','.avi','.mov','.mpg','.mpeg','.ogv','.webm'];
+
+    // Group by base name (ignore extension)
+    const grouped = {};
+    files.forEach(f => {
+      const name = f.name || '';
+      const lower = name.toLowerCase();
+      if(!videoFormats.some(ext => lower.endsWith(ext))) return;
+      const base = name.replace(/\.[^.]+$/, ''); // remove extension
+      const urlBase = pl.url.replace('/details/','/download/').replace(/\/$/,'');
+      const fileUrl = `${urlBase}/${encodeURIComponent(name)}`;
+
+      if(!grouped[base]) grouped[base] = [];
+      grouped[base].push({ 
+        format: name.split('.').pop(), 
+        fileUrl, 
+        size: f.size 
+      });
     });
-    if(videoFiles.length === 0){
-      tracksContainer.innerHTML = `<div class="small">No video files found for identifier <code>${id}</code>.</div>`;
-      currentTracks = [];
+
+    currentTracks = Object.entries(grouped).map(([base, formats]) => ({
+      title: base,
+      formats
+    }));
+
+    if(currentTracks.length === 0){
+      tracksContainer.innerHTML = `<div class="small">No playable videos found.</div>`;
       return;
     }
 
-    // Build track objects
-    currentTracks = videoFiles.map((f, i) => {
-      const filename = f.name;
-      // direct file URL pattern:
-      const fileUrl = `https://archive.org/download/${id}/${filename}`;
-      return {
-        title: f.title || filename || `${idx}-${i}`,
-        fileUrl,
-        size: f.size,
-        format: f.format || '',
-      };
-    });
-
     renderTracks();
-    loadTrack(0);
+    loadTrack(0,0);
+
   }catch(err){
     tracksContainer.innerHTML = `<div class="small">Error: ${err.message}</div>`;
     console.error(err);
@@ -85,77 +94,76 @@ function renderTracks(){
     const el = document.createElement('div');
     el.className = 'track';
     el.dataset.index = i;
+
+    let formatBtns = '';
+    t.formats.forEach((f, fi) => {
+      formatBtns += `<button class="fmt-btn" data-track="${i}" data-fmt="${fi}">${f.format}</button> `;
+    });
+
     el.innerHTML = `
       <div class="meta">
         <div class="title">${escapeHtml(t.title)}</div>
-        <div class="sub">${escapeHtml(t.format)} ${t.size ? '• ' + t.size : ''}</div>
+        <div class="sub">Formats: ${formatBtns}</div>
       </div>
-      <div class="small">▶</div>
     `;
-    el.addEventListener('click', ()=> loadTrack(i));
+
+    el.querySelectorAll('.fmt-btn').forEach(btn => {
+      btn.addEventListener('click', (e)=>{
+        const ti = Number(e.target.dataset.track);
+        const fi = Number(e.target.dataset.fmt);
+        loadTrack(ti, fi);
+      });
+    });
+
     tracksContainer.appendChild(el);
   });
   highlightActive();
 }
 
-function loadTrack(i){
-  if(!currentTracks[i]) return;
-  currentIndex = i;
-  const t = currentTracks[i];
-  // remove existing sources then add a single source (browser picks)
+function loadTrack(trackIdx, fmtIdx=0){
+  if(!currentTracks[trackIdx]) return;
+  currentIndex = trackIdx;
+  currentFormatIndex = fmtIdx;
+  const track = currentTracks[trackIdx];
+  const fmt = track.formats[fmtIdx];
+
   while(videoPlayer.firstChild) videoPlayer.removeChild(videoPlayer.firstChild);
   const source = document.createElement('source');
-  source.src = t.fileUrl;
-  // try to set type from format
-  if(t.format && t.format.toLowerCase().includes('mp4')) source.type = 'video/mp4';
+  source.src = fmt.fileUrl;
   videoPlayer.appendChild(source);
+
   videoPlayer.load();
-  videoPlayer.play().catch(()=>{ /* autoplay may be blocked */});
+  videoPlayer.play().catch(()=>{});
   highlightActive();
 }
 
 function highlightActive(){
   const els = tracksContainer.querySelectorAll('.track');
-  els.forEach(el => {
-    el.classList.toggle('active', Number(el.dataset.index) === currentIndex);
+  els.forEach((el, idx) => {
+    el.classList.toggle('active', idx === currentIndex);
   });
 }
 
-// helper: get /metadata/<id>
+// helpers
 async function fetchArchiveMetadata(identifier){
   const url = `https://archive.org/metadata/${encodeURIComponent(identifier)}`;
   const res = await fetch(url);
-  if(!res.ok) throw new Error('Archive.org metadata fetch failed: ' + res.status);
+  if(!res.ok) throw new Error('Archive.org metadata fetch failed');
   return res.json();
 }
 
 function extractIdentifierFromUrl(url){
   try{
-    // common forms:
-    // https://archive.org/details/identifier
-    // .../details/identifier/
-    // .../details/identifier/anything
     const u = new URL(url);
-    // split pathname, identifier is first segment after /details/ or last segment
     const parts = u.pathname.split('/').filter(Boolean);
     const idx = parts.indexOf('details');
-    if(idx >= 0 && parts.length > idx+1) return parts[idx+1];
-    // fallback to last segment
-    return parts[parts.length - 1] || null;
-  }catch(e){
-    return null;
-  }
+    if(idx >= 0 && parts[idx+1]) return parts[idx+1];
+    return parts[parts.length-1];
+  }catch{ return null; }
 }
 
-function escapeHtml(s = ''){
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function escapeHtml(s=''){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-// init
 loadPlaylists();
-
-// Optional: keyboard next/prev
-document.addEventListener('keydown', e=>{
-  if(e.key === 'ArrowRight'){ if(currentIndex < currentTracks.length-1) loadTrack(currentIndex+1) }
-  if(e.key === 'ArrowLeft'){ if(currentIndex > 0) loadTrack(currentIndex-1) }
-});
