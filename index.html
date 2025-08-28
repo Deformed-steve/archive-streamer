@@ -7,15 +7,26 @@
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
-  <h1>🎵 Archive Playlists</h1>
+  <header>
+    <h1>📼 Archive Playlists</h1>
+  </header>
 
-  <div id="playlist-container"></div>
+  <main>
+    <!-- Playlist cards will be injected here -->
+    <section id="playlists" class="playlists-grid"></section>
 
-  <!-- Video Player -->
-  <div id="player-wrapper" style="display:none;">
-    <video id="video-player" controls width="640" height="360"></video>
-  </div>
+    <!-- Selected playlist viewer -->
+    <section id="playlist-viewer">
+      <div class="cover-wrap">
+        <img id="coverImg" src="assets/img/placeholder.jpg" alt="Playlist cover">
+      </div>
+      <div id="playlistTracks" class="tracks-list">
+        <p class="small">Select a playlist to view tracks.</p>
+      </div>
+    </section>
+  </main>
 
+  <!-- Scripts -->
   <script src="assets/js/player.js"></script>
 </body>
 </html>
