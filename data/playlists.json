@@ -11,6 +11,12 @@
       "url": "https://archive.org/details/Goosebumps1995TVSeries",
       "cover": "/assets/img/goosebumps.jpg",
       "description": "Spooky movie."
+    },
+    {
+      "title": "maximum overdrive",
+      "url": "https://archive.org/details/maximum-overdrive-vhs-recorded-from-tv",
+      "cover": "/assets/img/maximum.jpg",
+      "description": "Spooky movie."
     }
   ]
 }
