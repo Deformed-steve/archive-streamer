@@ -5,6 +5,12 @@
       "url": "https://archive.org/download/billnyethescienceguythecompleteseries-07-28-2021",
       "cover": "/assets/img/billnye-cover.jpg",
       "description": "Example playlist using archive.org metadata"
+    },
+    {
+      "title": "Goosebumps",
+      "url": "https://archive.org/details/Goosebumps1995TVSeries",
+      "cover": "/assets/img/goosebumps.jpg",
+      "description": "Spooky movie."
     }
   ]
 }
