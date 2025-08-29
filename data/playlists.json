@@ -12,6 +12,12 @@
       "cover": "/assets/img/goosebumps.jpg",
       "description": "Spooky movie."
     },
+   {
+      "title": "yt",
+      "url": "https://www.youtube.com/watch?v=WjEJCTFQz-U",
+      "cover": "/assets/img/goosebumps.jpg",
+      "description": "Spooky movie."
+    },
     {
       "title": "maximum overdrive",
       "url": "https://archive.org/details/maximum-overdrive-vhs-recorded-from-tv",
